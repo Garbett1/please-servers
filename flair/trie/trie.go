@@ -5,7 +5,6 @@ package trie
 
 import (
 	"fmt"
-	mathrand "math/rand"
 	"strings"
 
 	apb "github.com/bazelbuild/remote-apis/build/bazel/remote/asset/v1"
@@ -196,11 +195,7 @@ func toHex(i int) byte {
 // Get returns a server from this trie.
 // It is assumed not to fail since the trie is already complete.
 func (t *Trie) Get(key string) *Server {
-	offset := 0
-	if t.loadBalance {
-		offset = mathrand.Intn(len(t.nodes))
-	}
-	return t.GetOffset(key, offset)
+	return t.GetOffset(key, 0)
 }
 
 // GetOffset gets a server with the hash offset by a given amount.
