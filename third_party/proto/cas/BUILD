@@ -3,7 +3,7 @@ go_library(
     name = "cas",
     srcs = ["cas.pb.go"],
     deps = [
-        "//third_party/go:protobuf",
+        "//third_party/go:protobuf","//third_party/go:golang-protobuf",
         "//third_party/go:remote-apis",
     ],
     visibility = ["PUBLIC"],

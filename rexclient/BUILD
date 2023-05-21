@@ -5,7 +5,7 @@ go_library(
     deps = [
         "//grpcutil",
         "//third_party/go:cli-init",
-        "//third_party/go:grpc",
+        "//third_party/go:grpc","//third_party/go:net",
         "//third_party/go:remote-apis",
         "//third_party/go:remote-apis-sdks",
     ],

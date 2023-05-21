@@ -35,7 +35,7 @@ go_module(
         "//third_party/go:gax-go",
         "//third_party/go:go.opencensus.io",
         "//third_party/go:google-cloud-go",
-        "//third_party/go:grpc",
+        "//third_party/go:grpc","//third_party/go:net",
         "//third_party/go:oauth2",
     ],
 )

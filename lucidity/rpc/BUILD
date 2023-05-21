@@ -11,7 +11,7 @@ go_library(
         "//proto/lucidity",
         "//third_party/go:api",
         "//third_party/go:cli-init",
-        "//third_party/go:protobuf",
+        "//third_party/go:protobuf","//third_party/go:golang-protobuf",
         "//third_party/go/prometheus",
     ],
 )

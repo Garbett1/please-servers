@@ -2,11 +2,19 @@
 package main
 
 import (
+	"fmt"
 	"github.com/peterebden/go-cli-init/v4/flags"
+	"log"
+	"net/http"
 
 	"github.com/thought-machine/please-servers/cli"
 	"github.com/thought-machine/please-servers/elan/rpc"
 	"github.com/thought-machine/please-servers/grpcutil"
+
+	"github.com/honeycombio/honeycomb-opentelemetry-go"
+	"github.com/honeycombio/otel-config-go/otelconfig"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var opts = struct {
@@ -31,8 +39,32 @@ modes are intended for testing only.
 `,
 }
 
+// Implement an HTTP Handler func to be instrumented
+func httpHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello, World")
+}
+
+// Wrap the HTTP handler func with OTel HTTP instrumentation
+func wrapHandler() {
+	handler := http.HandlerFunc(httpHandler)
+	wrappedHandler := otelhttp.NewHandler(handler, "hello")
+	http.Handle("/hello", wrappedHandler)
+}
+
 func main() {
 	_, info := cli.ParseFlagsOrDie("Elan", &opts, &opts.Logging)
+
+	bsp := honeycomb.NewBaggageSpanProcessor()
+
+	// use honeycomb distro to setup OpenTelemetry SDK
+	otelShutdown, err := otelconfig.ConfigureOpenTelemetry(
+		otelconfig.WithSpanProcessor(bsp),
+	)
+	if err != nil {
+		log.Fatalf("error setting up OTel SDK - %e", err)
+	}
+	defer otelShutdown()
+
 	go cli.ServeAdmin(opts.Admin, info)
 	rpc.ServeForever(opts.GRPC, opts.Storage, opts.Parallelism, opts.DirCacheSize, int64(opts.KnownBlobCacheSize))
 }

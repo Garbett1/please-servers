@@ -7,7 +7,7 @@ go_binary(
         "//flair/trie",
         "//grpcutil",
         "//third_party/go:cli-init",
-        "//third_party/go:grpc",
+        "//third_party/go:grpc","//third_party/go:net",
     ],
     visibility = ["//package:all"],
 )

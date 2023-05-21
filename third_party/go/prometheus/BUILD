@@ -14,7 +14,7 @@ go_module(
         "//third_party/go:xxhash_v2",
         "//third_party/go:net",
         "//third_party/go:spew",
-        "//third_party/go:protobuf",
+        "//third_party/go:protobuf","//third_party/go:golang-protobuf",
     ],
 )
 
@@ -28,7 +28,7 @@ go_module(
     version = "v1.0.0-rc.0",
     deps = [
         ":prometheus",
-        "//third_party/go:grpc",
+        "//third_party/go:grpc","//third_party/go:net",
         "//third_party/go:net",
         "//third_party/go:grpc-middleware",
     ],
@@ -60,7 +60,7 @@ go_module(
     module = "github.com/prometheus/client_model",
     version = "v0.4.0",
     deps = [
-        "//third_party/go:protobuf",
+        "//third_party/go:protobuf","//third_party/go:golang-protobuf",
     ],
 )
 
@@ -78,7 +78,7 @@ go_module(
         ":golang_protobuf_extensions",
         "//third_party/go:kingpin",
         "//third_party/go:logrus",
-        "//third_party/go:protobuf",
+        "//third_party/go:protobuf","//third_party/go:golang-protobuf",
     ],
 )
 
@@ -88,6 +88,6 @@ go_module(
     module = "github.com/matttproud/golang_protobuf_extensions",
     version = "v1.0.4",
     deps = [
-        "//third_party/go:protobuf",
+        "//third_party/go:protobuf","//third_party/go:golang-protobuf",
     ],
 )

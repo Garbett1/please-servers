@@ -10,7 +10,7 @@ go_library(
         "//third_party/go:cli-init",
         "//third_party/go:genproto",
         "//third_party/go:go-multierror",
-        "//third_party/go:grpc",
+        "//third_party/go:grpc","//third_party/go:net",
         "//third_party/go:remote-apis",
     ],
 )
@@ -21,7 +21,7 @@ go_test(
     deps = [
         ":trie",
         "//third_party/go:go-multierror",
-        "//third_party/go:grpc",
+        "//third_party/go:grpc","//third_party/go:net",
         "//third_party/go:testify",
     ],
 )

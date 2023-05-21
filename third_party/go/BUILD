@@ -1,4 +1,6 @@
 package(default_visibility = ["PUBLIC"])
+subinclude("///go//build_defs:go")
+
 
 go_toolchain(
     name = "toolchain",
@@ -31,9 +33,16 @@ go_module(
     ],
 )
 
-go_module(
+
+go_repo(
     name = "net",
+    download=":net_dl",
+    module = "golang.org/x/net",
     install = ["..."],
+)
+
+go_mod_download(
+    name = "net_dl",
     module = "golang.org/x/net",
     version = "1bab6f366d9ec8c152f8735b2e359822ef75e3bd",
     deps = [
@@ -77,72 +86,14 @@ go_module(
     ],
 )
 
-go_module(
-    name = "grpc",
-    exported_deps = [":net"],
-    install = [
-        ".",
-        "attributes",
-        "backoff",
-        "balancer",
-        "balancer/base",
-        "balancer/grpclb",
-        "balancer/grpclb/...",
-        "balancer/roundrobin",
-        "binarylog/...",
-        "channelz",
-        "codes",
-        "connectivity",
-        "credentials",
-        "credentials/alts",
-        "credentials/alts/...",
-        "credentials/google",
-        "credentials/insecure",
-        "credentials/oauth",
-        "encoding",
-        "encoding/gzip",
-        "encoding/proto",
-        "grpclog",
-        "health",
-        "health/grpc_health_v1",
-        "internal",
-        "internal/...",
-        "keepalive",
-        "metadata",
-        "peer",
-        "reflection",
-        "reflection/...",
-        "resolver",
-        "resolver/dns",
-        "resolver/passthrough",
-        "serviceconfig",
-        "stats",
-        "status",
-        "tap",
-    ],
-    module = "google.golang.org/grpc",
-    strip = [
-        "internal/credentials/xds",
-        "internal/testutils",
-        "internal/xds",
-    ],
-    version = "v1.48.0",
-    deps = [
-        ":cmp",
-        ":oauth2",
-        ":protobuf",
-        ":rpc",
-        ":unix",
-    ],
-)
-
 go_mod_download(
     name = "genproto_download",
     module = "google.golang.org/genproto",
     version = "1856144b1d9c726b541e4a75f9bf7fe259ff92de",
+    deps = [":protobuf"],
 )
 
-go_module(
+go_repo(
     name = "rpc",
     download = ":genproto_download",
     install = [
@@ -152,7 +103,6 @@ go_module(
         "googleapis/type/date",
     ],
     module = "google.golang.org/genproto",
-    deps = [":protobuf"],
 )
 
 go_module(
@@ -174,29 +124,93 @@ go_module(
     visibility = ["PUBLIC"],
 )
 
-go_module(
-    name = "protobuf",
-    download = ":protobuf_download",
-    exported_deps = [
-        ":golang-protobuf",
-    ],
-    install = ["..."],
-    module = "github.com/golang/protobuf",
-    strip = [
-        "proto/proto3_proto",
-        "conformance",
-    ],
-    deps = [
-        ":cmp",
-        ":golang-protobuf",
-    ],
-)
-
 go_mod_download(
     name = "protobuf_download",
     module = "github.com/golang/protobuf",
     version = "v1.4.2",
+     strip = [
+            "proto/proto3_proto",
+            "conformance",
+        ],
+        deps = [
+            ":cmp",
+            ":golang-protobuf",
+        ],
 )
+go_repo(
+name="protobuf",
+module="github.com/golang/protobuf",
+version="v1.4.2",
+download=":protobuf_download",
+install=["..."],
+)
+
+go_mod_download(
+             name = "grpc_dl",
+            module = "google.golang.org/grpc",
+            version = "v1.48.0",
+            deps = [
+                    ":cmp",
+                    ":oauth2",
+                    ":protobuf",
+                    ":golang-protobuf",
+                    ":rpc",
+                    ":unix",
+                ],
+            strip = [
+                    "internal/credentials/xds",
+                    "internal/testutils",
+                    "internal/xds",
+                ],
+                )
+
+go_repo(
+name="grpc",
+module="google.golang.org/grpc",
+download=":grpc_dl",
+install = [
+    ".",
+    "attributes",
+    "backoff",
+    "balancer",
+    "balancer/base",
+    "balancer/grpclb",
+    "balancer/grpclb/...",
+    "balancer/roundrobin",
+    "binarylog/...",
+    "channelz",
+    "codes",
+    "connectivity",
+    "credentials",
+    "credentials/alts",
+    "credentials/alts/...",
+    "credentials/google",
+    "credentials/insecure",
+    "credentials/oauth",
+    "encoding",
+    "encoding/gzip",
+    "encoding/proto",
+    "grpclog",
+    "health",
+    "health/grpc_health_v1",
+    "internal",
+    "internal/...",
+    "keepalive",
+    "metadata",
+    "peer",
+    "reflection",
+    "reflection/...",
+    "resolver",
+    "resolver/dns",
+    "resolver/passthrough",
+    "serviceconfig",
+    "stats",
+    "status",
+    "tap",
+],
+version="v1.48.0"
+)
+
 
 go_module(
     name = "spew",
@@ -239,7 +253,7 @@ go_module(
     deps = [
         ":grpc",
         ":net",
-        ":protobuf",
+        ":protobuf","//third_party/go:golang-protobuf",
     ],
 )
 
@@ -298,7 +312,7 @@ go_module(
     deps = [
         ":genproto",
         ":grpc",
-        ":protobuf",
+        ":protobuf","//third_party/go:golang-protobuf",
         ":rpc",
     ],
 )
@@ -319,7 +333,7 @@ go_module(
         ":grpc",
         ":oauth2",
         ":pborman_uuid",
-        ":protobuf",
+        ":protobuf","//third_party/go:golang-protobuf",
         ":remote-apis",
         ":rpc",
         ":xattr",
@@ -334,14 +348,19 @@ go_mod_download(
     version = "2a9420921957c3485fc59c6cae6adc849591ba48",
 )
 
-go_module(
+go_mod_download(
+ name="golang-protobuf_download",
+ module = "google.golang.org/protobuf",
+ deps=[":cmp"],
+ version="v1.30.0",
+)
+
+go_repo(
     name = "golang-protobuf",
     install = ["..."],
     module = "google.golang.org/protobuf",
     version = "v1.30.0",
-    deps = [
-        ":cmp",
-    ],
+    download=":golang-protobuf_download"
 )
 
 go_module(
@@ -401,7 +420,7 @@ go_module(
     module = "google.golang.org/genproto",
     deps = [
         ":grpc",
-        ":protobuf",
+        ":protobuf","//third_party/go:golang-protobuf",
         ":rpc",
     ],
 )
@@ -888,3 +907,245 @@ go_module(
     module = "github.com/googleapis/enterprise-certificate-proxy",
     version = "v0.1.0",
 )
+
+go_repo(
+name="otelhttp",
+install=[".", "..."],
+module="go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp", version="v0.41.1")
+
+go_repo(name="otel-config-go", module="github.com/honeycombio/otel-config-go", install=["...",], version="v1.9.0")
+go_repo(module="google.golang.org/appengine", version="v1.6.7")
+go_repo(module="cloud.google.com/go/scheduler", version="v1.7.0")
+go_repo(module="github.com/google/martian/v3", version="v3.2.1")
+go_repo(module="cloud.google.com/go/recaptchaenterprise/v2", version="v2.5.0")
+go_repo(module="cloud.google.com/go/datastore", version="v1.10.0")
+go_repo(module="cloud.google.com/go/managedidentities", version="v1.4.0")
+go_repo(module="go.opentelemetry.io/otel", version="v1.15.1")
+go_repo(module="go.opentelemetry.io/contrib/instrumentation/runtime", version="v0.41.1")
+go_repo(module="golang.org/x/tools", version="v0.6.0")
+go_repo(module="go.opentelemetry.io/otel/exporters/stdout/stdouttrace", version="v1.15.1")
+go_repo(module="github.com/shoenig/go-m1cpu", version="v0.1.4")
+go_repo(module="github.com/tklauser/go-sysconf", version="v0.3.11")
+go_repo(module="github.com/iancoleman/strcase", version="v0.2.0")
+go_repo(module="github.com/pkg/errors", version="v0.9.1")
+go_repo(module="cloud.google.com/go/compute/metadata", version="v0.2.3")
+go_repo(module="github.com/stretchr/testify", version="v1.8.2")
+go_repo(module="github.com/googleapis/gax-go/v2", version="v2.7.0")
+go_repo(module="github.com/envoyproxy/protoc-gen-validate", version="v0.9.1")
+go_repo(module="cloud.google.com/go/certificatemanager", version="v1.4.0")
+go_repo(module="cloud.google.com/go/filestore", version="v1.4.0")
+go_repo(module="cloud.google.com/go/phishingprotection", version="v0.6.0")
+go_repo(module="go.opentelemetry.io/contrib/propagators/ot", version="v1.16.1")
+go_repo(module="cloud.google.com/go/datafusion", version="v1.5.0")
+go_repo(module="gopkg.in/errgo.v2", version="v2.1.0")
+go_repo(module="cloud.google.com/go/servicemanagement", version="v1.5.0")
+go_repo(module="github.com/go-logr/logr", version="v1.2.4")
+go_repo(module="github.com/shoenig/test", version="v0.6.3")
+go_repo(module="golang.org/x/mod", version="v0.8.0")
+go_repo(module="github.com/spf13/afero", version="v1.9.2")
+go_repo(module="github.com/golang/snappy", version="v0.0.3")
+go_repo(module="cloud.google.com/go/area120", version="v0.6.0")
+go_repo(module="cloud.google.com/go/orgpolicy", version="v1.5.0")
+go_repo(module="cloud.google.com/go/bigquery", version="v1.44.0")
+go_repo(module="github.com/spaolacci/murmur3", version="v0.0.0-20180118202830-f09979ecbc72")
+go_repo(module="cloud.google.com/go/dataflow", version="v0.7.0")
+go_repo(module="cloud.google.com/go/trace", version="v1.4.0")
+go_repo(module="cloud.google.com/go/websecurityscanner", version="v1.4.0")
+go_repo(module="github.com/go-logr/stdr", version="v1.2.2")
+go_repo(module="github.com/kr/pretty", version="v0.2.1")
+go_repo(module="cloud.google.com/go/ids", version="v1.2.0")
+go_repo(module="cloud.google.com/go/pubsublite", version="v1.5.0")
+go_repo(module="cloud.google.com/go/vmwareengine", version="v0.1.0")
+go_repo(module="go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp", version="v0.38.1")
+go_repo(module="github.com/ghodss/yaml", version="v1.0.0")
+go_repo(module="github.com/chzyer/logex", version="v1.1.10")
+go_repo(module="github.com/ianlancetaylor/demangle", version="v0.0.0-20181102032728-5e5cf60278f6")
+go_repo(module="cloud.google.com/go/aiplatform", version="v1.27.0")
+go_repo(module="github.com/cespare/xxhash", version="v1.1.0")
+go_repo(module="cloud.google.com/go/workflows", version="v1.9.0")
+go_repo(module="cloud.google.com/go/dataproc", version="v1.8.0")
+go_repo(module="cloud.google.com/go/videointelligence", version="v1.9.0")
+go_repo(module="github.com/sethvargo/go-envconfig", version="v0.9.0")
+go_repo(module="cloud.google.com/go/edgecontainer", version="v0.2.0")
+go_repo(module="github.com/tklauser/numcpus", version="v0.6.0")
+go_repo(module="github.com/chzyer/test", version="v0.0.0-20180213035817-a1ea475d72b1")
+go_repo(module="cloud.google.com/go/contactcenterinsights", version="v1.4.0")
+go_repo(module="cloud.google.com/go/servicedirectory", version="v1.7.0")
+go_repo(module="cloud.google.com/go/apigateway", version="v1.4.0")
+go_repo(module="cloud.google.com/go/appengine", version="v1.5.0")
+go_repo(module="cloud.google.com/go/assuredworkloads", version="v1.9.0")
+go_repo(module="cloud.google.com/go/retail", version="v1.11.0")
+go_repo(module="go.opentelemetry.io/otel/exporters/otlp/internal/retry", version="v1.15.1")
+go_repo(module="cloud.google.com/go/essentialcontacts", version="v1.4.0")
+go_repo(module="cloud.google.com/go/gkemulticloud", version="v0.4.0")
+go_repo(module="golang.org/x/xerrors", version="v0.0.0-20220907171357-04be3eba64a2")
+go_repo(module="github.com/kr/fs", version="v0.1.0")
+go_repo(module="cloud.google.com/go/datalabeling", version="v0.6.0")
+go_repo(module="cloud.google.com/go/dlp", version="v1.7.0")
+go_repo(module="cloud.google.com/go/monitoring", version="v1.8.0")
+go_repo(module="golang.org/x/sys", version="v0.7.0")
+go_repo(module="google.golang.org/grpc/cmd/protoc-gen-go-grpc", version="v1.1.0")
+go_repo(module="cloud.google.com/go/security", version="v1.10.0")
+go_repo(module="cloud.google.com/go/dataqna", version="v0.6.0")
+go_repo(module="cloud.google.com/go/gkebackup", version="v0.3.0")
+go_repo(module="cloud.google.com/go/tpu", version="v1.4.0")
+go_repo(module="cloud.google.com/go/gkehub", version="v0.10.0")
+go_repo(
+name="honey_otel",
+install=[".", "..."],
+module="github.com/honeycombio/honeycomb-opentelemetry-go", version="v0.6.0")
+go_repo(module="github.com/felixge/httpsnoop", version="v1.0.3")
+go_repo(module="github.com/lyft/protoc-gen-star", version="v0.6.1")
+go_repo(module="cloud.google.com/go/mediatranslation", version="v0.6.0")
+go_repo(module="cloud.google.com/go/networkmanagement", version="v1.5.0")
+go_repo(module="cloud.google.com/go/webrisk", version="v1.7.0")
+go_repo(module="github.com/golang/glog", version="v1.0.0")
+go_repo(module="cloud.google.com/go/iap", version="v1.5.0")
+go_repo(module="cloud.google.com/go/metastore", version="v1.8.0")
+go_repo(module="cloud.google.com/go/networkconnectivity", version="v1.7.0")
+go_repo(module="go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc", version="v0.38.1")
+go_repo(module="cloud.google.com/go/pubsub", version="v1.27.1")
+go_repo(module="cloud.google.com/go/baremetalsolution", version="v0.4.0")
+go_repo(module="cloud.google.com/go/vmmigration", version="v1.3.0")
+
+
+go_repo(module="cloud.google.com/go/analytics", version="v0.12.0")
+go_repo(module="cloud.google.com/go/container", version="v1.7.0")
+go_repo(module="cloud.google.com/go/memcache", version="v1.7.0")
+go_repo(module="github.com/googleapis/google-cloud-go-testing", version="v0.0.0-20200911160855-bcd43fbb19e8")
+go_repo(module="cloud.google.com/go/maps", version="v0.1.0")
+go_repo(module="cloud.google.com/go/domains", version="v0.7.0")
+go_repo(module="github.com/client9/misspell", version="v0.3.4")
+go_repo(module="cloud.google.com/go/iam", version="v0.8.0")
+
+
+go_repo(module="github.com/kr/text", version="v0.1.0")
+go_repo(module="cloud.google.com/go/channel", version="v1.9.0")
+go_repo(module="cloud.google.com/go/gaming", version="v1.8.0")
+go_repo(module="github.com/cncf/udpa/go", version="v0.0.0-20220112060539-c52dc94e7fbe")
+go_repo(module="go.opentelemetry.io/proto/otlp", version="v0.19.0")
+go_repo(module="cloud.google.com/go/accesscontextmanager", version="v1.4.0")
+go_repo(module="golang.org/x/sync", version="v0.1.0")
+go_repo(module="github.com/envoyproxy/go-control-plane", version="v0.10.3")
+go_repo(module="github.com/kisielk/gotool", version="v1.0.0")
+go_repo(module="cloud.google.com/go/eventarc", version="v1.8.0")
+go_repo(module="cloud.google.com/go/translate", version="v1.4.0")
+go_repo(module="cloud.google.com/go/vpcaccess", version="v1.5.0")
+go_repo(module="github.com/rogpeppe/go-internal", version="v1.3.0")
+go_repo(module="cloud.google.com/go/beyondcorp", version="v0.3.0")
+go_repo(module="cloud.google.com/go/datastream", version="v1.5.0")
+go_repo(module="cloud.google.com/go/deploy", version="v1.5.0")
+go_repo(module="cloud.google.com/go/functions", version="v1.9.0")
+go_repo(module="cloud.google.com/go/texttospeech", version="v1.5.0")
+go_repo(module="go.uber.org/goleak", version="v1.2.1")
+go_repo(module="github.com/chzyer/readline", version="v0.0.0-20180603132655-2972be24d48e")
+go_repo(module="cloud.google.com/go/kms", version="v1.6.0")
+go_repo(module="cloud.google.com/go/securitycenter", version="v1.16.0")
+go_repo(module="go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp", version="v1.15.1")
+go_repo(module="go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc", version="v0.41.1")
+go_repo(module="honnef.co/go/tools", version="v0.0.1-2020.1.4")
+go_repo(module="cloud.google.com/go/cloudbuild", version="v1.4.0")
+go_repo(module="cloud.google.com/go/notebooks", version="v1.5.0")
+go_repo(module="cloud.google.com/go/oslogin", version="v1.7.0")
+go_repo(module="github.com/shirou/gopsutil/v3", version="v3.23.3")
+go_repo(module="github.com/grpc-ecosystem/grpc-gateway/v2", version="v2.12.0")
+
+go_repo(module="github.com/census-instrumentation/opencensus-proto", version="v0.4.1")
+go_repo(module="cloud.google.com/go/networksecurity", version="v0.6.0")
+go_repo(module="cloud.google.com/go/video", version="v1.9.0")
+go_repo(module="github.com/BurntSushi/toml", version="v0.3.1")
+go_repo(module="github.com/google/go-cmp", version="v0.5.9")
+go_repo(module="go.opentelemetry.io/otel/trace", version="v1.15.1")
+go_repo(module="cloud.google.com/go/orchestration", version="v1.4.0")
+go_repo(module="cloud.google.com/go/speech", version="v1.9.0")
+go_repo(module="gopkg.in/check.v1", version="v1.0.0-20190902080502-41f04d3bba15")
+go_repo(module="cloud.google.com/go/recommendationengine", version="v0.6.0")
+go_repo(module="go.opentelemetry.io/contrib/instrumentation/host", version="v0.41.1")
+go_repo(module="github.com/kr/pty", version="v1.1.1")
+go_repo(module="github.com/googleapis/enterprise-certificate-proxy", version="v0.2.0")
+go_repo(module="cloud.google.com/go/clouddms", version="v1.4.0")
+go_repo(module="github.com/golang/groupcache", version="v0.0.0-20200121045136-8c9f03a8e57e")
+go_repo(module="cloud.google.com/go/redis", version="v1.10.0")
+go_repo(module="cloud.google.com/go/servicecontrol", version="v1.5.0")
+go_repo(module="go.opentelemetry.io/otel/exporters/otlp/otlptrace", version="v1.15.1")
+
+go_repo(module="github.com/OneOfOne/xxhash", version="v1.2.2")
+go_repo(module="cloud.google.com/go/containeranalysis", version="v0.6.0")
+go_repo(module="cloud.google.com/go/gkeconnect", version="v0.6.0")
+go_repo(module="github.com/cenkalti/backoff/v4", version="v4.2.1")
+go_repo(module="github.com/antihax/optional", version="v1.0.0")
+go_repo(module="github.com/golang/mock", version="v1.4.4")
+go_repo(module="github.com/google/pprof", version="v0.0.0-20200708004538-1a94d8640e99")
+go_repo(module="cloud.google.com/go/vision", version="v1.2.0")
+go_repo(module="github.com/davecgh/go-spew", version="v1.1.1")
+go_repo(module="go.opentelemetry.io/contrib/propagators/b3", version="v1.16.1")
+go_repo(module="github.com/jstemmer/go-junit-report", version="v0.9.1")
+go_repo(module="cloud.google.com/go/serviceusage", version="v1.4.0")
+go_repo(module="cloud.google.com/go/talent", version="v1.4.0")
+go_repo(module="golang.org/x/oauth2", version="v0.4.0")
+go_repo(module="golang.org/x/term", version="v0.7.0")
+go_repo(module="cloud.google.com/go/recommender", version="v1.8.0")
+go_repo(module="github.com/pmezard/go-difflib", version="v1.0.0")
+go_repo(module="cloud.google.com/go/storage", version="v1.27.0")
+go_repo(module="cloud.google.com/go/automl", version="v1.8.0")
+go_repo(module="cloud.google.com/go/batch", version="v0.4.0")
+go_repo(module="cloud.google.com/go/privatecatalog", version="v0.6.0")
+go_repo(module="github.com/go-ole/go-ole", version="v1.2.6")
+go_repo(module="github.com/cespare/xxhash/v2", version="v2.2.0")
+go_repo(module="cloud.google.com/go/dataform", version="v0.5.0")
+go_repo(module="cloud.google.com/go/resourcesettings", version="v1.4.0")
+go_repo(module="cloud.google.com/go/secretmanager", version="v1.9.0")
+go_repo(module="github.com/google/renameio", version="v0.1.0")
+go_repo(module="cloud.google.com/go/optimization", version="v1.2.0")
+go_repo(module="go.opentelemetry.io/otel/exporters/otlp/otlpmetric", version="v0.38.1")
+go_repo(module="cloud.google.com/go/accessapproval", version="v1.5.0")
+go_repo(module="github.com/prometheus/client_model", version="v0.2.0")
+go_repo(module="cloud.google.com/go/artifactregistry", version="v1.9.0")
+go_repo(module="cloud.google.com/go/asset", version="v1.10.0")
+go_repo(module="cloud.google.com/go/dataplex", version="v1.4.0")
+go_repo(module="cloud.google.com/go/documentai", version="v1.10.0")
+go_repo(module="cloud.google.com/go/shell", version="v1.4.0")
+go_repo(module="go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc", version="v1.15.1")
+go_repo(module="github.com/lufia/plan9stats", version="v0.0.0-20220913051719-115f729f3c8c")
+go_repo(module="github.com/rogpeppe/fastuuid", version="v1.2.0")
+go_repo(module="cloud.google.com/go/billing", version="v1.7.0")
+go_repo(module="cloud.google.com/go/vision/v2", version="v2.5.0")
+go_repo(module="github.com/stretchr/objx", version="v0.5.0")
+go_repo(module="github.com/pkg/sftp", version="v1.13.1")
+go_repo(module="cloud.google.com/go/osconfig", version="v1.10.0")
+go_repo(module="cloud.google.com/go/spanner", version="v1.41.0")
+go_repo(module="cloud.google.com/go", version="v0.107.0")
+go_repo(module="golang.org/x/lint", version="v0.0.0-20210508222113-6edffad5e616")
+go_repo(module="github.com/google/uuid", version="v1.3.0")
+go_repo(module="cloud.google.com/go/datacatalog", version="v1.8.0")
+go_repo(module="cloud.google.com/go/cloudtasks", version="v1.8.0")
+go_repo(module="cloud.google.com/go/firestore", version="v1.9.0")
+go_repo(module="cloud.google.com/go/resourcemanager", version="v1.4.0")
+go_repo(module="gopkg.in/yaml.v3", version="v3.0.1")
+go_repo(module="github.com/yusufpapurcu/wmi", version="v1.2.2")
+go_repo(module="golang.org/x/crypto", version="v0.0.0-20211108221036-ceb1ce70b4fa")
+go_repo(module="github.com/yuin/goldmark", version="v1.4.13")
+go_repo(module="google.golang.org/api", version="v0.103.0")
+go_repo(module="go.uber.org/multierr", version="v1.11.0")
+go_repo(module="golang.org/x/exp", version="v0.0.0-20190121172915-509febef88a4")
+go_repo(module="cloud.google.com/go/grafeas", version="v0.2.0")
+go_repo(module="cloud.google.com/go/errorreporting", version="v0.3.0")
+go_repo(module="cloud.google.com/go/lifesciences", version="v0.6.0")
+go_repo(module="go.opentelemetry.io/otel/metric", version="v0.38.1")
+go_repo(module="cloud.google.com/go/binaryauthorization", version="v1.4.0")
+go_repo(module="cloud.google.com/go/recaptchaenterprise", version="v1.3.1")
+go_repo(module="cloud.google.com/go/storagetransfer", version="v1.6.0")
+go_repo(module="github.com/power-devops/perfstat", version="v0.0.0-20220216144756-c35f1ee13d7c")
+go_repo(module="github.com/cncf/xds/go", version="v0.0.0-20230105202645-06c439db220b")
+go_repo(module="cloud.google.com/go/apigeeconnect", version="v1.4.0")
+go_repo(module="cloud.google.com/go/dialogflow", version="v1.19.0")
+go_repo(module="cloud.google.com/go/language", version="v1.8.0")
+go_repo(module="cloud.google.com/go/policytroubleshooter", version="v1.4.0")
+go_repo(module="go.opentelemetry.io/otel/sdk", version="v1.15.1")
+go_repo(module="go.opentelemetry.io/otel/sdk/metric", version="v0.38.1")
+go_repo(module="cloud.google.com/go/compute", version="v1.15.1")
+go_repo(module="cloud.google.com/go/longrunning", version="v0.3.0")
+go_repo(module="cloud.google.com/go/gsuiteaddons", version="v1.4.0")
+go_repo(module="cloud.google.com/go/iot", version="v1.4.0")
+go_repo(module="cloud.google.com/go/logging", version="v1.6.1")
+go_repo(module="cloud.google.com/go/run", version="v0.3.0")
