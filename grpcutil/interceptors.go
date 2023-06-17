@@ -61,11 +61,13 @@ func NewServer(opts Opts) (net.Listener, *grpc.Server) {
 			LogUnaryRequests,
 			serverMetrics.UnaryServerInterceptor(),
 			grpc_recovery.UnaryServerInterceptor(),
+			//otelgrpc.UnaryServerInterceptor(),
 		}, unaryAuthInterceptor(opts)...)...),
 		grpc.ChainStreamInterceptor(append([]grpc.StreamServerInterceptor{
 			LogStreamRequests,
 			serverMetrics.StreamServerInterceptor(),
 			grpc_recovery.StreamServerInterceptor(),
+			//otelgrpc.StreamServerInterceptor(),
 		}, streamAuthInterceptor(opts)...)...),
 		grpc.MaxRecvMsgSize(419430400), // 400MB
 		grpc.MaxSendMsgSize(419430400),
