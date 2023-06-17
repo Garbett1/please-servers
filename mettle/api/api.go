@@ -4,7 +4,13 @@ package api
 import (
 	"context"
 	"fmt"
+	"github.com/honeycombio/honeycomb-opentelemetry-go"
+	"github.com/honeycombio/otel-config-go/otelconfig"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -26,12 +32,16 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"github.com/thought-machine/please-servers/grpcutil"
 	"github.com/thought-machine/please-servers/mettle/common"
 	"github.com/thought-machine/please-servers/rexclient"
 )
 
 var log = clilogging.MustGetLogger()
+
+var tracer = otel.Tracer("mettle-api")
 
 const timeout = 10 * time.Second
 
@@ -115,6 +125,16 @@ func init() {
 		prometheus.MustRegister(metric)
 	}
 }
+func httpHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello, World")
+}
+
+// Wrap the HTTP handler func with OTel HTTP instrumentation
+func wrapHandler() {
+	handler := http.HandlerFunc(httpHandler)
+	wrappedHandler := otelhttp.NewHandler(handler, "hello")
+	http.Handle("/hello", wrappedHandler)
+}
 
 // PubSubOpts holds information to configure queue options in the api server
 type PubSubOpts struct {
@@ -128,6 +148,18 @@ type PubSubOpts struct {
 
 // ServeForever serves on the given port until terminated.
 func ServeForever(opts grpcutil.Opts, name string, queueOpts PubSubOpts, apiURL string, connTLS bool, allowedPlatform map[string][]string, storageURL string, storageTLS bool) {
+	bsp := honeycomb.NewBaggageSpanProcessor()
+
+	// use honeycomb distro to setup OpenTelemetry SDK
+	otelShutdown, err := otelconfig.ConfigureOpenTelemetry(
+		otelconfig.WithSpanProcessor(bsp),
+	)
+
+	if err != nil {
+		log.Fatalf("error setting up OTel SDK - %e", err)
+	}
+	defer otelShutdown()
+
 	s, lis, err := serve(opts, name, queueOpts, apiURL, connTLS, allowedPlatform, storageURL, storageTLS)
 	if err != nil {
 		log.Fatalf("%s", err)
@@ -281,6 +313,8 @@ func (s *server) Execute(req *pb.ExecuteRequest, stream pb.Execution_ExecuteServ
 	}
 	if md := s.contextMetadata(stream.Context()); md != nil {
 		log.Notice("Received an ExecuteRequest for %s. Tool: %s %s Action id: %s Correlation ID: %s", req.ActionDigest.Hash, md.ToolDetails.ToolName, md.ToolDetails.ToolVersion, md.ActionId, md.CorrelatedInvocationsId)
+		_, span := tracer.Start(stream.Context(), "execute", trace.WithAttributes(attribute.String("action-id", md.ActionId), attribute.String("please-version", md.ToolDetails.ToolVersion)))
+		defer span.End()
 	} else {
 		log.Notice("Received an ExecuteRequest for %s", req.ActionDigest.Hash)
 	}

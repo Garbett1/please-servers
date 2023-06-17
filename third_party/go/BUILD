@@ -251,7 +251,7 @@ go_repo(
 
 go_repo(
     module = "github.com/go-logr/logr",
-    version = "v1.2.3",
+    version = "v1.2.4",
 )
 
 go_repo(
@@ -463,7 +463,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp",
-    version = "v0.37.0",
+    version = "v0.42.0",
 )
 
 go_repo(
@@ -763,7 +763,7 @@ go_repo(
 
 go_repo(
     module = "github.com/cenkalti/backoff/v4",
-    version = "v4.2.0",
+    version = "v4.2.1",
 )
 
 go_repo(
@@ -918,7 +918,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel/sdk",
-    version = "v1.11.2",
+    version = "v1.16.0",
 )
 
 go_repo(
@@ -1168,7 +1168,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel/exporters/otlp/internal/retry",
-    version = "v1.11.2",
+    version = "v1.16.0",
 )
 
 go_repo(
@@ -1408,7 +1408,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc",
-    version = "v1.11.2",
+    version = "v1.16.0",
 )
 
 go_repo(
@@ -1508,7 +1508,7 @@ go_repo(
 
 go_repo(
     module = "go.uber.org/goleak",
-    version = "v1.2.0",
+    version = "v1.2.1",
 )
 
 go_repo(
@@ -2003,7 +2003,7 @@ go_repo(
 
 go_repo(
     module = "go.uber.org/multierr",
-    version = "v1.9.0",
+    version = "v1.11.0",
 )
 
 go_repo(
@@ -2883,7 +2883,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel",
-    version = "v1.11.2",
+    version = "v1.16.0",
 )
 
 go_repo(
@@ -3089,7 +3089,7 @@ go_repo(
 
 go_repo(
     module = "github.com/grpc-ecosystem/grpc-gateway/v2",
-    version = "v2.11.3",
+    version = "v2.15.2",
 )
 
 go_repo(
@@ -3114,7 +3114,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel/exporters/otlp/otlptrace",
-    version = "v1.11.2",
+    version = "v1.16.0",
 )
 
 go_repo(
@@ -3199,7 +3199,7 @@ go_repo(
 
 go_repo(
     module = "github.com/shoenig/test",
-    version = "v0.6.0",
+    version = "v0.6.4",
 )
 
 go_repo(
@@ -3589,7 +3589,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel/sdk/metric",
-    version = "v0.20.0",
+    version = "v0.39.0",
 )
 
 go_repo(
@@ -3719,7 +3719,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp",
-    version = "v1.11.2",
+    version = "v1.16.0",
 )
 
 go_repo(
@@ -3749,7 +3749,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel/trace",
-    version = "v1.11.2",
+    version = "v1.16.0",
 )
 
 go_repo(
@@ -3769,7 +3769,7 @@ go_repo(
 
 go_repo(
     module = "go.opentelemetry.io/otel/metric",
-    version = "v0.34.0",
+    version = "v1.16.0",
 )
 
 go_repo(
@@ -3836,4 +3836,99 @@ go_repo(
 go_repo(
     module = "github.com/thought-machine/please-servers",
     version = "v6.3.8+incompatible",
+)
+
+go_repo(
+    module = "github.com/power-devops/perfstat",
+    version = "v0.0.0-20221212215047-62379fc7944b",
+)
+
+go_repo(
+    module = "go.opentelemetry.io/contrib/propagators/ot",
+    version = "v1.17.0",
+)
+
+go_repo(
+    module = "github.com/tklauser/go-sysconf",
+    version = "v0.3.11",
+)
+
+go_repo(
+    module = "go.opentelemetry.io/contrib/instrumentation/host",
+    version = "v0.42.0",
+)
+
+go_repo(
+    module = "github.com/shoenig/go-m1cpu",
+    version = "v0.1.6",
+)
+
+go_repo(
+    module = "github.com/go-ole/go-ole",
+    version = "v1.2.6",
+)
+
+go_repo(
+    module = "go.opentelemetry.io/otel/exporters/stdout/stdouttrace",
+    version = "v1.16.0",
+)
+
+go_repo(
+    module = "github.com/tklauser/numcpus",
+    version = "v0.6.0",
+)
+
+go_repo(
+    module = "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc",
+    version = "v0.39.0",
+)
+
+go_repo(
+    module = "github.com/sethvargo/go-envconfig",
+    version = "v0.9.0",
+)
+
+go_repo(
+    module = "go.opentelemetry.io/contrib/instrumentation/runtime",
+    version = "v0.42.0",
+)
+
+go_repo(
+    module = "github.com/honeycombio/otel-config-go",
+    version = "v1.10.0",
+)
+
+go_repo(
+    module = "github.com/yusufpapurcu/wmi",
+    version = "v1.2.3",
+)
+
+go_repo(
+    module = "go.opentelemetry.io/otel/exporters/otlp/otlpmetric",
+    version = "v0.39.0",
+)
+
+go_repo(
+    module = "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp",
+    version = "v0.39.0",
+)
+
+go_repo(
+    module = "github.com/lufia/plan9stats",
+    version = "v0.0.0-20230326075908-cb1d2100619a",
+)
+
+go_repo(
+    module = "github.com/shirou/gopsutil/v3",
+    version = "v3.23.4",
+)
+
+go_repo(
+    module = "go.opentelemetry.io/contrib/propagators/b3",
+    version = "v1.17.0",
+)
+
+go_repo(
+    module = "github.com/honeycombio/honeycomb-opentelemetry-go",
+    version = "v0.7.0",
 )
