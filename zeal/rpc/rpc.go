@@ -8,6 +8,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"fmt"
+	"github.com/bazelbuild/remote-apis-sdks/go/pkg/uploadinfo"
 	"hash"
 	"io"
 	"net/http"
@@ -60,6 +61,7 @@ func init() {
 // ServeForever serves on the given port until terminated.
 func ServeForever(opts grpcutil.Opts, storage string, secureStorage bool, parallelism int, headers map[string]map[string]string, auth map[string]string, forceCasCheck bool) {
 	client := rexclient.MustNew("mettle", storage, secureStorage, opts.TokenFile)
+	client.ChunkMaxSize = 2 * 1024 * 1024
 	srv := &server{
 		client:        retryablehttp.NewClient(),
 		storageClient: client,
@@ -251,9 +253,13 @@ func (s *server) fetchURL(ctx context.Context, url string, qualifiers []*pb.Qual
 	blob := buf.Bytes()
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
+	ue := uploadinfo.EntryFromBlob(blob)
 	digest, err := s.storageClient.WriteBlob(ctx, blob)
 	if err == nil {
-		log.Info("Wrote %s as compressed blob %s", url, digest.Hash)
+		compressed := s.storageClient.UploadCompressionPredicate(ue)
+		log.Info("Wrote %s as compressed=%s blob %s", url, compressed, digest.Hash)
+	} else {
+		log.Errorf("Failed to write blob: %v", err)
 	}
 	return digest.ToProto(), err
 }

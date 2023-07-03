@@ -41,7 +41,7 @@ import (
 
 var log = clilogging.MustGetLogger()
 
-var tracer = otel.Tracer("mettle-api")
+var tracer = otel.Tracer("remote-execution-tracing")
 
 const timeout = 10 * time.Second
 
@@ -313,7 +313,7 @@ func (s *server) Execute(req *pb.ExecuteRequest, stream pb.Execution_ExecuteServ
 	}
 	if md := s.contextMetadata(stream.Context()); md != nil {
 		log.Notice("Received an ExecuteRequest for %s. Tool: %s %s Action id: %s Correlation ID: %s", req.ActionDigest.Hash, md.ToolDetails.ToolName, md.ToolDetails.ToolVersion, md.ActionId, md.CorrelatedInvocationsId)
-		_, span := tracer.Start(stream.Context(), "execute", trace.WithAttributes(attribute.String("action-id", md.ActionId), attribute.String("please-version", md.ToolDetails.ToolVersion), attribute.String("build-id", md.CorrelatedInvocationsId)))
+		_, span := tracer.Start(stream.Context(), "mettle.api.execute", trace.WithAttributes(attribute.String("action-id", md.ActionId), attribute.String("please-version", md.ToolDetails.ToolVersion), attribute.String("build-id", md.CorrelatedInvocationsId)))
 		defer span.End()
 	} else {
 		log.Notice("Received an ExecuteRequest for %s", req.ActionDigest.Hash)
