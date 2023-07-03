@@ -12,7 +12,6 @@ import (
 	"github.com/peterebden/go-cli-init/v4/flags"
 	"github.com/peterebden/go-cli-init/v4/logging"
 
-	_ "github.com/google/s2a-go"
 	"github.com/thought-machine/please-servers/cli"
 	"github.com/thought-machine/please-servers/grpcutil"
 	"github.com/thought-machine/please-servers/mettle/api"

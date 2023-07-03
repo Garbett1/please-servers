@@ -5,6 +5,7 @@ go_library(
     deps = [
         "///third_party/go/github.com_bazelbuild_remote-apis-sdks//go/pkg/client",
         "///third_party/go/github.com_bazelbuild_remote-apis-sdks//go/pkg/digest",
+        "///third_party/go/github.com_bazelbuild_remote-apis-sdks//go/pkg/uploadinfo",
         "///third_party/go/github.com_bazelbuild_remote-apis//build/bazel/remote/asset/v1",
         "///third_party/go/github.com_bazelbuild_remote-apis//build/bazel/remote/execution/v2",
         "///third_party/go/github.com_golang_protobuf//ptypes",

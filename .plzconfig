@@ -41,9 +41,13 @@ protodep = //third_party/go:golang-protobuf
 grpcdep = //third_party/go:grpc
 
 [alias "runlocal"]
-cmd = run parallel //elan:run_local //browser:run_local //zeal:run_local //flair:run_local //lucidity:run_local //redis:run_local
+cmd = run parallel //elan:run_local //mettle:run_local //zeal:run_local //browser:run_local //flair:run_local //lucidity:run_local //redis:run_local
 desc = Runs an instance of each server for local development
 
 [alias "buildlocal"]
 cmd = build //elan:run_local //mettle:run_local //browser:run_local //zeal:run_local //flair:run_local //lucidity:run_local //redis:run_local
 desc = Builds (but doesn't run) all the servers
+
+[alias "runtrace"]
+cmd = run parallel //elan:run_local //zeal:run_local //browser:run_local //flair:run_local //lucidity:run_local //redis:run_local
+desc = Runs an instance of each server for local development

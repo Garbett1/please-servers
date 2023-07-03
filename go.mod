@@ -18,7 +18,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.6.6
 	github.com/honeycombio/honeycomb-opentelemetry-go v0.7.0
 	github.com/honeycombio/otel-config-go v1.10.0
-	github.com/klauspost/compress v1.12.3
+	github.com/klauspost/compress v1.13.6
 	github.com/mostynb/go-grpc-compression v1.1.6
 	github.com/peterebden/go-cli-init/v4 v4.0.1
 	github.com/peterebden/go-copyfile v0.0.0-20200424115000-bc0baf74909c
@@ -65,7 +65,6 @@ require (
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/glog v1.1.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
-	github.com/golang/snappy v0.0.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.4.0 // indirect
