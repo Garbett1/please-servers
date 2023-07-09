@@ -9,8 +9,6 @@ go_library(
         "///third_party/go/github.com_bazelbuild_remote-apis//build/bazel/semver",
         "///third_party/go/github.com_golang_protobuf//proto",
         "///third_party/go/github.com_golang_protobuf//ptypes",
-        "///third_party/go/github.com_honeycombio_honeycomb-opentelemetry-go//:honeycomb-opentelemetry-go",
-        "///third_party/go/github.com_honeycombio_otel-config-go//otelconfig",
         "///third_party/go/github.com_peterebden_go-cli-init_v4//logging",
         "///third_party/go/github.com_prometheus_client_golang//prometheus",
         "///third_party/go/go.opentelemetry.io_contrib_instrumentation_net_http_otelhttp//:otelhttp",

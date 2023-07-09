@@ -345,7 +345,7 @@ func initialiseWorker(instanceName, requestQueue, responseQueue, name, storage, 
 	if lucidity != "" {
 		w.lucidChan = make(chan *lpb.UpdateRequest, 100)
 		log.Notice("Dialling Lucidity...")
-		conn, err := grpcutil.Dial(lucidity, true, "", tokenFile) // CA is currently not configurable.
+		conn, err := grpcutil.Dial(lucidity, true, "", tokenFile, false) // CA is currently not configurable.
 		if err != nil {
 			return nil, fmt.Errorf("Failed to dial Lucidity server: %s", err)
 		}

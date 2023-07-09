@@ -5,6 +5,8 @@ go_library(
     deps = [
         "///third_party/go/github.com_grpc-ecosystem_go-grpc-middleware_providers_prometheus//:prometheus",
         "///third_party/go/github.com_grpc-ecosystem_go-grpc-middleware_v2//interceptors/recovery",
+        "///third_party/go/github.com_honeycombio_honeycomb-opentelemetry-go//:honeycomb-opentelemetry-go",
+        "///third_party/go/github.com_honeycombio_otel-config-go//otelconfig",
         "///third_party/go/github.com_mostynb_go-grpc-compression//zstd",
         "///third_party/go/github.com_peterebden_go-cli-init_v4//logging",
         "///third_party/go/github.com_prometheus_client_golang//prometheus",

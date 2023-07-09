@@ -4,8 +4,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/honeycombio/honeycomb-opentelemetry-go"
-	"github.com/honeycombio/otel-config-go/otelconfig"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -148,17 +146,8 @@ type PubSubOpts struct {
 
 // ServeForever serves on the given port until terminated.
 func ServeForever(opts grpcutil.Opts, name string, queueOpts PubSubOpts, apiURL string, connTLS bool, allowedPlatform map[string][]string, storageURL string, storageTLS bool) {
-	bsp := honeycomb.NewBaggageSpanProcessor()
-
-	// use honeycomb distro to setup OpenTelemetry SDK
-	otelShutdown, err := otelconfig.ConfigureOpenTelemetry(
-		otelconfig.WithSpanProcessor(bsp),
-	)
-
-	if err != nil {
-		log.Fatalf("error setting up OTel SDK - %e", err)
-	}
-	defer otelShutdown()
+	shutdown, err := grpcutil.InitTracing()
+	defer shutdown()
 
 	s, lis, err := serve(opts, name, queueOpts, apiURL, connTLS, allowedPlatform, storageURL, storageTLS)
 	if err != nil {
@@ -260,7 +249,7 @@ func getExecutions(opts grpcutil.Opts, apiURL string, connTLS bool) (map[string]
 		log.Notice("No API URL provided, will not request inflight executions")
 		return map[string]*job{}, nil
 	}
-	conn, err := grpcutil.Dial(apiURL, connTLS, opts.CertFile, opts.TokenFile)
+	conn, err := grpcutil.Dial(apiURL, connTLS, opts.CertFile, opts.TokenFile, false)
 	if err != nil {
 		return nil, err
 	}

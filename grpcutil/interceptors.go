@@ -3,6 +3,8 @@ package grpcutil
 import (
 	"context"
 	"fmt"
+	"github.com/honeycombio/honeycomb-opentelemetry-go"
+	"github.com/honeycombio/otel-config-go/otelconfig"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"io/ioutil"
@@ -80,6 +82,20 @@ func NewServer(opts Opts) (net.Listener, *grpc.Server) {
 		grpc_health_v1.RegisterHealthServer(s, health.NewServer())
 	}
 	return lis, s
+}
+
+func InitTracing() (func(), error) {
+	bsp := honeycomb.NewBaggageSpanProcessor()
+
+	// use honeycomb distro to setup OpenTelemetry SDK
+	otelShutdown, err := otelconfig.ConfigureOpenTelemetry(
+		otelconfig.WithSpanProcessor(bsp),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	return otelShutdown, nil
 }
 
 func unaryAuthInterceptor(opts Opts) []grpc.UnaryServerInterceptor {
