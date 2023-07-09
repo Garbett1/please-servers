@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"io/ioutil"
 	"strings"
 
@@ -13,9 +14,20 @@ import (
 
 // Dial is a convenience function wrapping up some common gRPC functionality.
 // If the URL is prefixed by a protocol (grpc:// or grpcs://) that overrides the TLS flag.
-func Dial(address string, tls bool, caFile, tokenFile string) (*grpc.ClientConn, error) {
+func Dial(address string, tls bool, caFile, tokenFile string, tracing bool) (*grpc.ClientConn, error) {
 	address, tls = parseAddress(address, tls)
-	return grpc.Dial(address, append(DialOptions(tokenFile), tlsOpt(tls, caFile))...)
+	return grpc.Dial(address, append(tracingOps(tracing), append(DialOptions(tokenFile), tlsOpt(tls, caFile))...)...)
+}
+
+func tracingOps(tracing bool) []grpc.DialOption {
+	if !tracing {
+		return []grpc.DialOption{}
+	}
+	opts := []grpc.DialOption{
+		grpc.WithChainUnaryInterceptor(otelgrpc.UnaryClientInterceptor()),
+		grpc.WithChainStreamInterceptor(otelgrpc.StreamClientInterceptor()),
+	}
+	return opts
 }
 
 // DialOptions returns some common dial options.

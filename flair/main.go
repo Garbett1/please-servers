@@ -51,6 +51,8 @@ func main() {
 	cr := newReplicator(opts.Geometry, opts.Replicas, opts.LoadBalance)
 	ar := newReplicator(opts.AssetGeometry, opts.Replicas, opts.LoadBalance)
 	er := newReplicator(opts.ExecutorGeometry, opts.Replicas, opts.LoadBalance)
+	shutdown, _ := grpcutil.InitTracing()
+	defer shutdown()
 	rpc.ServeForever(opts.GRPC, cr, ar, er, time.Duration(opts.Timeout))
 }
 
@@ -59,7 +61,7 @@ func newReplicator(geometry map[string]string, replicas int, loadBalance bool) *
 		return nil
 	}
 	t := trie.New(func(address string) (*grpc.ClientConn, error) {
-		return grpcutil.Dial(address, opts.ConnTLS, opts.CA, opts.GRPC.TokenFile)
+		return grpcutil.Dial(address, opts.ConnTLS, opts.CA, opts.GRPC.TokenFile, true)
 	})
 	if err := t.AddAll(geometry); err != nil {
 		log.Fatalf("Failed to create trie for provided geometry: %s", err)
