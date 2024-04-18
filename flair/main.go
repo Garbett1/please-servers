@@ -2,10 +2,13 @@
 package main
 
 import (
+	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/peterebden/go-cli-init/v4/flags"
 	"github.com/peterebden/go-cli-init/v4/logging"
+	gflag "github.com/thought-machine/go-flags"
 	"google.golang.org/grpc"
 
 	"github.com/thought-machine/please-servers/cli"
@@ -16,11 +19,43 @@ import (
 
 var log = logging.MustGetLogger()
 
+var goemRegExp = regexp.MustCompile("(?:(?P<instance>.*):)?(?P<geometry>[\\dA-Fa-f]-[\\dA-Fa-f]):(?P<address>.*)")
+
+type Geometry map[string]string
+type InstanceGeometry struct {
+	Name     string
+	Geometry Geometry
+}
+
+var instanceMaps map[string]Geometry
+
+// UnmarshalFlag implements the flags.Unmarshaler interface.
+func (d *InstanceGeometry) UnmarshalFlag(in string) error {
+	log.Fatalf(in)
+	matches := goemRegExp.Match([]byte(in))
+	if !matches {
+		return &gflag.Error{Type: gflag.ErrMarshal, Message: fmt.Sprintf("%s is not valid geometry. Format is: [<name>]:shape:address", in)}
+	}
+	allMatches := goemRegExp.FindStringSubmatch(in)
+	instance := allMatches[1]
+	geometry := allMatches[2]
+	address := allMatches[3]
+
+	if instance == "" {
+		instance = "default"
+	}
+	d.Name = instance
+	d.Geometry = map[string]string{geometry: address}
+	return nil
+}
+
+func 
+
 var opts = struct {
 	Usage            string
 	Logging          cli.LoggingOpts   `group:"Options controlling logging output"`
 	GRPC             grpcutil.Opts     `group:"Options controlling the gRPC server"`
-	Geometry         map[string]string `short:"g" long:"geometry" required:"true" description:"CAS server geometry to forward requests to (e.g. 0-f:127.0.0.1:443"`
+	Geometry         InstanceGeometry  `short:"g" long:"geometry" required:"true" description:"CAS server geometry to forward requests to (e.g. 0-f:127.0.0.1:443"`
 	AssetGeometry    map[string]string `short:"a" long:"asset_geometry" description:"Asset server geometry to forward requests to. If not given then the remote asset API will be unavailable."`
 	ExecutorGeometry map[string]string `short:"e" long:"executor_geometry" description:"Executor server geometry to forward request to. If not given then the executor API will be unavailable."`
 	Replicas         int               `short:"r" long:"replicas" default:"1" description:"Number of servers to replicate reads/writes to"`
@@ -47,8 +82,9 @@ want to have more than the minimum number of instances of it (hopefully more tha
 
 func main() {
 	_, info := cli.ParseFlagsOrDie("Flair", &opts, &opts.Logging)
+	log.Fatalf("%+v", opts.Geometry)
 	go cli.ServeAdmin("flair", opts.Admin, info)
-	cr := newReplicator(opts.Geometry, opts.Replicas, opts.LoadBalance)
+	cr := newReplicator(opts.Geometry.Geometry, opts.Replicas, opts.LoadBalance)
 	ar := newReplicator(opts.AssetGeometry, opts.Replicas, opts.LoadBalance)
 	er := newReplicator(opts.ExecutorGeometry, opts.Replicas, opts.LoadBalance)
 	rpc.ServeForever(opts.GRPC, cr, ar, er, time.Duration(opts.Timeout))

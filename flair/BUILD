@@ -10,6 +10,7 @@ go_binary(
         "//flair/trie",
         "//grpcutil",
         "//third_party/go:grpc",
+        "///third_party/go/github.com_thought-machine_go-flags//:go-flags",
     ],
 )
 
