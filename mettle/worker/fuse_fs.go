@@ -13,17 +13,6 @@ import (
 	"syscall"
 )
 
-type Unlinkable interface {
-	Unlink()
-}
-
-// FilePopulator is responsible for populating the input files for an action.
-// It can either eagerly or lazily fetch the contents of files, but the
-// contract is that a file matching the digest proto should be on the filesystem
-type FilePopulator interface {
-	PopulateFile(digest sdkdigest.Digest)
-}
-
 type countingNode struct {
 	fs.LoopbackNode
 
@@ -138,14 +127,4 @@ func (w *worker) reportFileUsage() {
 	log.Errorf("Total wasted downloads are: %d", wastedSpace)
 	log.Errorf("Total downloads are: %d", totalSpace)
 	log.Errorf("Fraction of usage is: %g", float64(wastedSpace)/float64(totalSpace))
-}
-
-func (w *worker) populateAllFiles(files map[sdkdigest.Digest][]fileNode, packs map[sdkdigest.Digest][]string) {
-	leavesToUnlink := make([]Unlinkable, 0, len(files)+len(packs))
-	defer func() {
-		for _, leaf := range leavesToUnlink {
-			leaf.Unlink()
-		}
-	}()
-
 }
