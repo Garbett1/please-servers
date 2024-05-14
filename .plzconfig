@@ -3,6 +3,8 @@ version = >=17.0.0
 
 [build]
 path = /usr/local/go/bin:/usr/local/bin:/usr/bin:/bin
+LinkGeneratedSources = true
+UpdateGitignore = true
 
 [buildconfig]
 local-host = 127.0.0.1

@@ -63,15 +63,27 @@ func (w *worker) downloadDirectory(digest *pb.Digest, usePacks bool) error {
 	}
 	files := map[sdkdigest.Digest][]fileNode{}
 	packs := map[sdkdigest.Digest][]string{}
-	if err := w.createDirectory(m, files, packs, w.dir, digest, usePacks); err != nil {
+	if err := w.createDirectory(m, files, packs, w.dir /* root directory */, digest, usePacks); err != nil {
 		return err
 	}
 	ts3 := time.Now()
-	err = w.downloadAllFiles(files, packs)
+	err = w.populateDirectories(files, packs)
+	// TODO(xander): Abstract this to all file systems
+	if w.fuseEnabled {
+		w.countingFs.ResetState(files)
+	}
+
 	w.metadataFetch = ts2.Sub(ts1)
 	w.dirCreation = ts3.Sub(ts2)
 	w.fileDownload = time.Since(ts3)
 	return err
+}
+
+func (w *worker) populateDirectories(files map[sdkdigest.Digest][]fileNode, packs map[sdkdigest.Digest][]string) error {
+	if w.fuseEnabled {
+		w.countingFs.digestToFiles = files
+	}
+	return w.downloadAllFiles(files, packs)
 }
 
 // createDirectory creates a directory & all its children

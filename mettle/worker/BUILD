@@ -25,7 +25,6 @@ go_library(
         "///third_party/go/github.com_shirou_gopsutil//mem",
         "///third_party/go/gocloud.dev//pubsub",
         "///third_party/go/golang.org_x_sync//errgroup",
-        "///third_party/go/golang.org_x_time//rate",
         "///third_party/go/google.golang.org_genproto//googleapis/pubsub/v1",
         "///third_party/go/google.golang.org_genproto_googleapis_rpc//status",
         "//cli",
@@ -39,5 +38,8 @@ go_library(
         "//third_party/go:grpc",
         "//third_party/proto/cas",
         "//third_party/proto/resourceusage",
+        "///third_party/go/github.com_hanwen_go-fuse_v2//fuse",
+        "///third_party/go/github.com_hanwen_go-fuse_v2//fs",
+        "///third_party/go/golang.org_x_sys//unix",
     ],
 )

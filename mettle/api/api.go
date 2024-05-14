@@ -485,7 +485,7 @@ func (s *server) Receive() {
 		}()
 	}
 	wg.Wait()
-	log.Fatalf("All pollers failed, exiting")
+	log.Errorf("All pollers failed")
 }
 
 // process processes a single message off the responses queue. Can be called concurrently by multiple go routines

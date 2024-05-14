@@ -157,7 +157,7 @@ func RunForever(instanceName, requestQueue, responseQueue, name, storage, dir, c
 func RunOne(instanceName, name, storage, dir, cacheDir, sandbox, altSandbox, tokenFile string, primaryRedis, readRedis *redis.Client, redisMaxSize int64, cachePrefix, cacheParts []string, clean, secureStorage bool, digest *pb.Digest) error {
 	// Must create this to submit on first
 	topic := common.MustOpenTopic("mem://requests")
-	w, err := initialiseWorker(instanceName, "mem://requests", "mem://responses", name, storage, dir, cacheDir, "", sandbox, altSandbox, "", "", tokenFile, primaryRedis, readRedis, redisMaxSize, cachePrefix, cacheParts, clean, secureStorage, 0, math.MaxInt64, 100.0, "", nil, 0)
+	w, err := initialiseWorker(instanceName, "mem://requests", "mem://responses", name, storage, dir, cacheDir, "", sandbox, altSandbox, "", "", tokenFile, primaryRedis, readRedis, redisMaxSize, cachePrefix, cacheParts, clean, secureStorage, 0, math.MaxInt64, 100.0, "", nil, 0, true)
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func RunOne(instanceName, name, storage, dir, cacheDir, sandbox, altSandbox, tok
 }
 
 func runForever(instanceName, requestQueue, responseQueue, name, storage, dir, cacheDir, browserURL, sandbox, altSandbox, lucidity, promGatewayURL, tokenFile string, primaryRedis, readRedis *redis.Client, redisMaxSize int64, cachePrefix, cacheParts []string, clean, secureStorage bool, maxCacheSize, minDiskSpace int64, memoryThreshold float64, versionFile string, costs map[string]mettlecli.Currency, ackExtension time.Duration, immediateShutdown bool) error {
-	w, err := initialiseWorker(instanceName, requestQueue, responseQueue, name, storage, dir, cacheDir, browserURL, sandbox, altSandbox, lucidity, promGatewayURL, tokenFile, primaryRedis, readRedis, redisMaxSize, cachePrefix, cacheParts, clean, secureStorage, maxCacheSize, minDiskSpace, memoryThreshold, versionFile, costs, ackExtension)
+	w, err := initialiseWorker(instanceName, requestQueue, responseQueue, name, storage, dir, cacheDir, browserURL, sandbox, altSandbox, lucidity, promGatewayURL, tokenFile, primaryRedis, readRedis, redisMaxSize, cachePrefix, cacheParts, clean, secureStorage, maxCacheSize, minDiskSpace, memoryThreshold, versionFile, costs, ackExtension, false)
 	if err != nil {
 		return err
 	}
@@ -193,8 +193,12 @@ func runForever(instanceName, requestQueue, responseQueue, name, storage, dir, c
 	ch := make(chan os.Signal, 2)
 	signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGABRT, syscall.SIGTERM)
 	ctx, cancel := context.WithCancel(context.Background())
+
 	go func() {
 		sig := <-ch
+		log.Errorf("Cleaning up worker %s", w.name)
+		w.Cleanup()
+		log.Errorf("Cleaned up worker %s", w.name)
 		if immediateShutdown {
 			w.forceShutdown(fmt.Sprintf("Received shutdown signal %s, shutting down...", sig))
 		}
@@ -237,7 +241,7 @@ func runForever(instanceName, requestQueue, responseQueue, name, storage, dir, c
 	}
 }
 
-func initialiseWorker(instanceName, requestQueue, responseQueue, name, storage, dir, cacheDir, browserURL, sandbox, altSandbox, lucidity, promGatewayURL, tokenFile string, primaryRedis, readRedis *redis.Client, redisMaxSize int64, cachePrefix, cacheParts []string, clean, secureStorage bool, maxCacheSize, minDiskSpace int64, memoryThreshold float64, versionFile string, costs map[string]mettlecli.Currency, ackExtension time.Duration) (*worker, error) {
+func initialiseWorker(instanceName, requestQueue, responseQueue, name, storage, dir, cacheDir, browserURL, sandbox, altSandbox, lucidity, promGatewayURL, tokenFile string, primaryRedis, readRedis *redis.Client, redisMaxSize int64, cachePrefix, cacheParts []string, clean, secureStorage bool, maxCacheSize, minDiskSpace int64, memoryThreshold float64, versionFile string, costs map[string]mettlecli.Currency, ackExtension time.Duration, enableFuse bool) (*worker, error) {
 	// Make sure we have a directory to run in
 	if err := os.MkdirAll(dir, os.ModeDir|0755); err != nil {
 		return nil, fmt.Errorf("Failed to create working directory: %s", err)
@@ -289,6 +293,11 @@ func initialiseWorker(instanceName, requestQueue, responseQueue, name, storage, 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to make path absolute: %s", err)
 	}
+	unq := filepath.Join(abspath, name)
+	err = os.MkdirAll(unq, 0775)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make all directories: %v", err)
+	}
 
 	w := &worker{
 		requests:        common.MustOpenSubscription(requestQueue, 1),
@@ -296,7 +305,7 @@ func initialiseWorker(instanceName, requestQueue, responseQueue, name, storage, 
 		ackExtension:    ackExtension,
 		client:          client,
 		rclient:         rexclient.Uninitialised(),
-		rootDir:         abspath,
+		rootDir:         unq,
 		clean:           clean,
 		home:            home,
 		name:            name,
@@ -312,7 +321,13 @@ func initialiseWorker(instanceName, requestQueue, responseQueue, name, storage, 
 		instanceName:    instanceName,
 		costs:           map[string]*bbru.MonetaryResourceUsage_Expense{},
 		metricTicker:    time.NewTicker(5 * time.Minute),
+		fuseEnabled:     true,
 	}
+
+	if w.fuseEnabled {
+		w.SetupFs()
+	}
+
 	if primaryRedis != nil {
 		w.client = newRedisClient(client, primaryRedis, readRedis, redisMaxSize)
 	}
@@ -394,6 +409,9 @@ type worker struct {
 	memoryThreshold float64
 	costs           map[string]*bbru.MonetaryResourceUsage_Expense
 	metricTicker    *time.Ticker
+	fuseEnabled     bool
+	// The FS Impl for Fuse for now
+	countingFs *countingFs
 
 	// These properties are per-action and reset each time.
 	actionDigest    *pb.Digest
@@ -497,26 +515,28 @@ func (w *worker) runTask(msg *pubsub.Message) *pb.ExecuteResponse {
 	log.Debug("Received task for action digest %s", w.actionDigest.Hash)
 	w.lastURL = w.actionURL()
 
-	action, command, status := w.fetchRequestBlobs(req)
-	if status != nil {
-		log.Error("Bad request: %s", status)
+	action, command, sts := w.fetchRequestBlobs(req)
+	if sts != nil {
+		log.Error("Bad request: %s", sts)
 		return &pb.ExecuteResponse{
 			Result: &pb.ActionResult{},
-			Status: status,
+			Status: sts,
 		}
 	}
-	if status := w.prepareDir(action, command); status != nil {
-		log.Warning("Failed to prepare directory for action digest %s: %s", w.actionDigest.Hash, status)
+
+	if sts := w.prepareDir(action, command); sts != nil {
+		log.Warning("Failed to prepare directory for action digest %s: %s", w.actionDigest.Hash, sts)
 		ar := &pb.ActionResult{
 			ExitCode:          255, // Not really but shouldn't look like it was successful
 			ExecutionMetadata: w.metadata,
 		}
-		status.Message += w.writeUncachedResult(ar, status.Message)
+		sts.Message += w.writeUncachedResult(ar, sts.Message)
 		return &pb.ExecuteResponse{
 			Result: ar,
-			Status: status,
+			Status: sts,
 		}
 	}
+	defer w.reportFileUsage()
 	return w.execute(req, action, command)
 }
 
